@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="huike.mapper.AdminUserMapper">
+
+    <sql id="Base_list">
+        id,account,password,passwordSalt,isDisabled,isDeleted
+    </sql>
+
+    <!--添加-->
+    <insert id="insert" parameterType="huike.po.AdminUser"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into sys_users
+        values(null,#{account},#{password},
+        #{passwordSalt},#{isDisabled},#{isDeleted})
+    </insert>
+
+    <!--修改-->
+    <update id="update" parameterType="huike.mapper.AdminUserMapper">
+
+    </update>
+
+    <!--删除 实现未删除,修改isDelete的状态为true-->
+    <delete id="delete" parameterType="long">
+        update sys_user set idDeleted = 1 where id = #{id};
+    </delete>
+
+    <select id="select" parameterType="huike.po.AdminUser"
+            resultType="huike.po.AdminUser">
+        select
+        <include refid="Base_list"/>
+        from sys_users where
+        isDeleted=false
+        <if test="id != null">and id = #{id}</if>
+        <if test="password !=null">and password=#{password}</if>
+        <if test="account != null">and account=#{account}</if>
+    </select>
+
+    <!--分页的方法-->
+    <select id="selectByPage" parameterType="map" resultType="huike.po.AdminUser">
+        select
+        <include refid="Base_list"/>
+        from sys_users where isDeleted = false
+        limit #{currPage},#{pageSize};
+    </select>
+
+    <!--查询总记录条件-->
+    <select id="selectCount" resultType="long">
+        select count(id) from  sys_users ;
+    </select>
+
+    <!--想用户角色表添加信息-->
+    <insert id="addAdminUserRole" parameterType="huike.po.AdminUserRole">
+        insert into sys_user_roles
+            (adminUserId,roleId)
+        VALUES (#{adminUserId},#{roleId});
+
+    </insert>
+
+    <!--根据ID查询用户-->
+    <select id="selectAdminUserById" parameterType="long" resultType="huike.po.AdminUser">
+        select
+        <include refid="Base_list"/>
+        from sys_users where id=#{adminUserId};
+    </select>
+
+    <update id="updateAdminUserDisable" parameterType="huike.po.AdminUser">
+        update sys_users set isDisabled = #{isDisabled}
+        where  id=#{id};
+    </update>
+
+
+    <!--下面为shiro登录授权方法-->
+
+    <select id="queryUserByName" resultType="huike.po.AdminUser" parameterType="string">
+        select * from sys_users where account = #{account};
+    </select>
+
+    <select id="findRolesById" parameterType="long" resultType="string">
+        SELECT DISTINCT  (r.NAME) FROM sys_roles r INNER JOIN sys_user_roles ur ON r.id = ur.roleId
+        WHERE ur.adminUserId = #{value}
+    </select>
+
+    <select id="findPermissionsById" parameterType="long" resultType="string">
+        SELECT DISTINCT  (p.permission)  FROM
+            sys_permissions  p
+            INNER JOIN sys_role_permissions rp ON rp.permissionId = p.id
+            INNER JOIN sys_roles  r ON r.id = rp.roleId
+            INNER JOIN sys_user_roles ur  ON ur.roleId = r.id
+            WHERE ur.adminUserId = #{value}
+    </select>
+
+
+    <!--添加用户所使用方法-->
+    <select id="queryAllRoles" resultType="role">
+        select * from sys_roles;
+    </select>
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--配置绑定一个dao接口-->
+<mapper namespace="huike.mapper.RoleMapper">
+    <sql id="Base_List">
+        id,name,description,isDeleted
+    </sql>
+
+    <insert id="insert" parameterType="huike.po.Role">
+		insert into sys_roles
+        	(name,description)
+        values
+        	(#{name},#{description})
+    </insert>
+
+    <update id="update" parameterType="huike.po.Role">
+    	update sys_roles
+	    	set name=#{name},
+	    		description=#{description}
+	    	where id=#{id}
+    </update>
+
+    <delete id="delete" parameterType="long">
+    	delete from sys_roles
+    		where roleId = #{id}
+    </delete>
+
+    <select id="select" parameterType="role" resultType="role">
+        select
+        <include refid="Base_List" />
+        from sys_roles
+        where isDeleted=false
+        <if test="id != null"> and id=#{id} </if>
+        <if test="name != null"> and name=#{name} </if>
+        <if test="description != null"> and description=#{description} </if>
+    </select>
+
+
+    <select id="selectByPage" parameterType="map" resultType="role">
+        select * from sys_roles where isDelete=false
+        limit #{startRecord} #{pageSize};
+    </select>
+
+    <select id="selectCount" resultType="long">
+
+    </select>
+
+
+</mapper>
